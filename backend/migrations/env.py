@@ -4,6 +4,7 @@ from logging.config import fileConfig
 from alembic import context
 from app.core.config import settings
 from app.models.base import Base
+from app.models.token import RefreshToken  # noqa: F401
 from app.models.user import User  # noqa: F401
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
@@ -71,6 +72,11 @@ async def run_async_migrations() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args={
+            "statement_cache_size": 0,
+            "prepared_statement_cache_size": 0,
+            "ssl": "require",
+        },
     )
 
     async with connectable.connect() as connection:

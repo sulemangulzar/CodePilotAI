@@ -44,6 +44,11 @@ async def login(
 
     try:
         user, access_token = await service.authenticate(credentials, response)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not available",
+        ) from exc
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
@@ -56,6 +61,11 @@ async def login(
 async def current_user(token: TokenDep, service: UserServiceDep):
     try:
         user = await service.get_current_user(token)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not available",
+        ) from exc
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
@@ -69,6 +79,11 @@ async def update(user_data: UpdateUser, token: TokenDep, service: UserServiceDep
     try:
         user = await service.get_current_user(token)
         updated_user = await service.update(user.id, user_data)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not available",
+        ) from exc
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
@@ -82,6 +97,11 @@ async def delete(token: TokenDep, service: UserServiceDep):
     try:
         user = await service.get_current_user(token)
         await service.delete(user.id)
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not available",
+        ) from exc
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
@@ -106,6 +126,11 @@ async def refresh_token(
         user, access_token, new_refresh_token = await service.refresh(
             refresh_token_value
         )
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database is not available",
+        ) from exc
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
