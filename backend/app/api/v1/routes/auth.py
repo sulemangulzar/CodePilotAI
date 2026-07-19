@@ -94,6 +94,7 @@ async def delete(token: TokenDep, service: UserServiceDep):
 async def refresh_token(
     request: Request,
     service: UserServiceDep,
+    response: Response,
 ):
     refresh_token_value = request.cookies.get("refresh_token")
     if not refresh_token_value:
@@ -102,11 +103,23 @@ async def refresh_token(
         )
 
     try:
-        user, access_token = await service.refresh(refresh_token_value)
+        user, access_token, new_refresh_token = await service.refresh(
+            refresh_token_value
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
         ) from exc
+
+    response.set_cookie(
+        key="refresh_token",
+        value=new_refresh_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=60 * 60 * 24 * 30,
+        path="/auth/v1/refresh",
+    )
 
     return TokenResponse(access_token=access_token, user=_serialize_user(user))
 

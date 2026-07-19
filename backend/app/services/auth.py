@@ -73,7 +73,7 @@ class AuthService:
 
         return user, access_token
 
-    async def refresh(self, refresh_token: str) -> tuple[User, str]:
+    async def refresh(self, refresh_token: str) -> tuple[User, str, str]:
         token_hash = hashlib.sha256(refresh_token.encode()).hexdigest()
         stored_token = await self.repository.get_refresh_token(token_hash)
 
@@ -99,7 +99,7 @@ class AuthService:
         new_token_hash = hashlib.sha256(new_refresh_token.encode()).hexdigest()
         await self.repository.save_refresh_token(user.id, new_token_hash)
 
-        return user, self._create_access_token(user)
+        return user, self._create_access_token(user), new_refresh_token
 
     async def get_current_user(self, token: str) -> User:
         try:
